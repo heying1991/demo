@@ -14,8 +14,7 @@ spec:
     spec:
       containers:
         - name: springboot-app
-          image: springboot-app:latest
-          imagePullPolicy: Never
+          image: ghcr.io/heying1991/springboot-app:lastest
           ports:
             - containerPort: 8088
           env:
