@@ -13,4 +13,13 @@ pipeline {
             }
         }
     }
+      stage('Deploy to K8s') {
+                steps {
+                    sh """
+                        kubectl apply -f deploy/deployment.yaml
+                        kubectl rollout status deployment/springboot-app
+                    """
+                }
+            }
+    }
 }
