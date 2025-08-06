@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangChain4j 聊天测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .chat-container {
+            border: 1px solid #ccc;
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 14px;
+        }
+        input {
+            flex: 1;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            text-align: right;
+        }
+        .ai-message {
+            background-color: #f1f1f1;
+        }
+        .clear-btn {
+            background-color: #dc3545;
+        }
+        .clear-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>LangChain4j 聊天测试</h1>
+    
+    <div>
+        <label for="userId">用户ID:</label>
+        <input type="text" id="userId" value="user123" placeholder="输入用户ID">
+    </div>
+    
+    <div class="chat-container" id="chatContainer">
+        <div class="message ai-message">欢迎使用AI聊天助手！</div>
+    </div>
+    
+    <div class="input-container">
+        <input type="text" id="messageInput" placeholder="输入消息..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">发送</button>
+        <button class="clear-btn" onclick="clearMemory()">清除记忆</button>
+    </div>
+    
+    <div>
+        <button onclick="getMemoryStatus()">查看记忆状态</button>
+    </div>
+
+    <script>
+        const userId = document.getElementById('userId');
+        const messageInput = document.getElementById('messageInput');
+        const chatContainer = document.getElementById('chatContainer');
+        
+        function addMessage(message, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            const currentUserId = userId.value.trim();
+            
+            if (!message || !currentUserId) {
+                alert('请输入消息和用户ID');
+                return;
+            }
+            
+            addMessage(message, true);
+            messageInput.value = '';
+            
+            try {
+                const response = await fetch('/api/langchain/chatWithMemory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: currentUserId,
+                        message: message
+                    })
+                });
+                
+                const result = await response.text();
+                addMessage(result);
+            } catch (error) {
+                addMessage('错误: ' + error.message);
+            }
+        }
+        
+        async function clearMemory() {
+            const currentUserId = userId.value.trim();
+            
+            if (!currentUserId) {
+                alert('请输入用户ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/langchain/clearMemory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: currentUserId
+                    })
+                });
+                
+                const result = await response.text();
+                addMessage(result);
+            } catch (error) {
+                addMessage('错误: ' + error.message);
+            }
+        }
+        
+        async function getMemoryStatus() {
+            try {
+                const response = await fetch('/api/langchain/memoryStatus');
+                const result = await response.json();
+                addMessage('记忆状态: ' + JSON.stringify(result, null, 2));
+            } catch (error) {
+                addMessage('错误: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html> 
