@@ -11,15 +11,15 @@ pipeline {
             steps {
                 sh 'mvn -B -DskipTests clean package'
             }
-        }
-    }
-      stage('Deploy to K8s') {
-                steps {
-                    sh """
-                        kubectl apply -f deploy/deployment.yaml
-                        kubectl rollout status deployment/springboot-app
-                    """
-                }
-            }
-    }
+           }
+        stage('Deploy to K8s') {
+                        steps {
+                            sh """
+                                kubectl apply -f deploy/deployment.yaml
+                                kubectl rollout status deployment/springboot-app
+                            """
+                        }
+                    }
+
+      }
 }
